@@ -7,7 +7,7 @@ celery==4.4.7
 certifi==2021.5.30
 charset-normalizer==2.0.4
 defusedxml==0.5.0
-Django==2.2.24
+Django==2.2.28
 django-cors-headers==3.8.0
 django-filter==2.1.0
 django-saml2-pro-auth @ git+https://github.com/culibraries/django-saml2-pro-auth.git@e2ad53d2591e4afc8606ffe94867f7c44be41699
