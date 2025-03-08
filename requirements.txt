@@ -24,7 +24,7 @@ idna==3.2
 isodate==0.6.0
 jmespath==0.10.0
 kombu==4.6.11
-lxml==4.6.3
+lxml==4.9.1
 mysql==0.0.3
 mysqlclient==2.0.3
 numpy==1.21.2
