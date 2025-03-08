@@ -9,7 +9,7 @@ charset-normalizer==2.0.4
 defusedxml==0.5.0
 Django==2.2.24
 django-cors-headers==3.8.0
-django-filter==2.1.0
+django-filter==2.4.0
 django-saml2-pro-auth @ git+https://github.com/culibraries/django-saml2-pro-auth.git@e2ad53d2591e4afc8606ffe94867f7c44be41699
 django-settings-export==1.2.1
 djangorestframework==3.11.2
