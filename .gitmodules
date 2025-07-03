@@ -4,12 +4,6 @@
 [submodule "s3"]
 	path = s3
 	url = git@github.com:CUB-Libraries-CTA/cloud-browser-django-app.git
-[submodule "room_booking"]
-	path = room_booking
-	url = git@github.com:CUB-Libraries-CTA/room-booking-django-app.git
-[submodule "s3-logging"]
-	path = s3-logging
-	url = git@github.com:CUB-Libraries-CTA/s3-logging-django-app.git
 [submodule "ark-server"]
 	path = ark-server
 	url = git@github.com:CUB-Libraries-CTA/ark-django-app.git
