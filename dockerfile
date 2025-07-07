@@ -1,4 +1,5 @@
-FROM python:3.8-alpine
+FROM python:3.8-alpine3.15
+#FROM python:3.8-alpine
 #FROM python:3.8.3-slim
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8 PYTHONUNBUFFERED=1
 

@@ -18,6 +18,7 @@ import requests
 import os
 import json
 from django.contrib.auth import logout
+from django.conf import settings
 
 from rest_framework.parsers import FileUploadParser, MultiPartParser
 from rest_framework.renderers import JSONRenderer
@@ -94,7 +95,7 @@ class appGroupPermissions(permissions.BasePermission):
         query={"filter":{"application":application}}
         app_required_group = MongoDataPagination(db,'catalog',security_grouper_collection,query=json.dumps(query),nPerPage=0)
         if application is not None:
-            user_groups,user_department=UserGroups().groups(request)
+            user_groups,user_departments=UserGroups().groups(request)
             for app in app_required_group['results']:
                 if app['group'] not in user_groups:
                     return False
@@ -102,68 +103,67 @@ class appGroupPermissions(permissions.BasePermission):
         else:
             return True
 
-
-class appAffiliationPermissions(permissions.BasePermission):
+class grouperPermissions(permissions.BasePermission):
     """
         This permission is included for application that require a specific 
-        affiliation.
+        Grouper group.  It does not look at the cybercom user object and 
+        groups assigned to user in cybercom.
+        The permission is allowed only if the application has set the
+        required groups in mongo and the user is a member of all the required
+        Grouper groups.
     """
-
     def has_permission(self, request, view):
         # determine which application is requesting this permission check
         application = request.query_params.get('app')
 
-        # only NYT Cooking application needs affiliation check
-        if application == "nytCooking":
-            app_required_affiliations = ['Student', 'Staff', 'Faculty']
-        else:
+        connect_uri = config.DATA_STORE_MONGO_URI
+        db = MongoClient(host=connect_uri)
+        query={"filter":{"application":application}}
+        app_required_group = MongoDataPagination(db,'catalog',security_grouper_collection,query=json.dumps(query),nPerPage=0)
+
+        user_groups, user_departments = GrouperGroups().groups(request)
+
+        if application is not None and (app_required_group['count'] > 0) and user_groups is not None:
+            # Check user has each required group
+            for app in app_required_group['results']:
+                if app['group'] not in user_groups:
+                    return False
             return True
-
-        # get user's affiliation
-        user_affiliations = UserAffiliations().affiliations(request)
-
-        if any(x in user_affiliations for x in app_required_affiliations):
-            hasPermission = True
         else:
-            hasPermission = False
-
-        return hasPermission
-
+            return False
 
 class UserGroups():
-    
     def groups(self,request):
         user_groups = []
-        user_department=''
+        user_departments = []
+
         for g in request.user.groups.all():
             user_groups.append(g.name)
         if default_user_group not in user_groups:
             my_group = Group.objects.get(name=default_user_group)
             my_group.user_set.add(request.user)
             user_groups.append(default_user_group)
-        if 'samlUserdata' in request.session:
-            samlUserdata = request.session['samlUserdata']
-            #print(samlUserdata)
-            if "urn:oid:1.3.6.1.4.1.632.11.2.200" in samlUserdata:
-                grouper = samlUserdata['urn:oid:1.3.6.1.4.1.632.11.2.200']
-                user_groups = list(set(user_groups+grouper))
-            if "urn:oid:1.3.6.1.4.1.632.11.1.15" in samlUserdata:
-                user_department= samlUserdata["urn:oid:1.3.6.1.4.1.632.11.1.15"]
+
+        # Append the user's Grouper groups
+        grouper_groups, user_departments = GrouperGroups().groups(request)
+        user_groups = list(set(user_groups+grouper_groups))
+
         user_groups.sort()
-        return user_groups,user_department
+        return user_groups, user_departments
 
-
-class UserAffiliations():
-
-    def affiliations(self, request):
-        user_affiliations = []
+class GrouperGroups():
+    def groups(self, request):
+        groups = []
+        departments = [] 
 
         if 'samlUserdata' in request.session:
             samlUserdata = request.session['samlUserdata']
-            if "urn:oid:1.3.6.1.4.1.5923.1.1.1.1" in samlUserdata:
-                user_affiliations = samlUserdata["urn:oid:1.3.6.1.4.1.5923.1.1.1.1"]
-        return user_affiliations
+            if "urn:oid:1.3.6.1.4.1.632.11.2.200" in samlUserdata:
+                groups = list(samlUserdata['urn:oid:1.3.6.1.4.1.632.11.2.200'])
+            if "urn:oid:1.3.6.1.4.1.632.11.1.15" in samlUserdata:
+                departments = list(samlUserdata["urn:oid:1.3.6.1.4.1.632.11.1.15"])
 
+        return groups, departments
 
 class UserProfile(APIView):
     permission_classes = (IsAuthenticated, appGroupPermissions,)
@@ -175,10 +175,10 @@ class UserProfile(APIView):
         data = User.objects.get(pk=self.request.user.id)
         serializer = self.serializer_class(data, context={'request': request})
         tok = Token.objects.get_or_create(user=self.request.user)
-        user_groups,user_department=UserGroups().groups(request)
+        user_groups,user_departments=UserGroups().groups(request)
         rdata = serializer.data
         rdata['name'] = data.get_full_name()
-        rdata['department']=user_department
+        rdata['department']=user_departments
         rdata['gravator_url'] = "{0}://www.gravatar.com/avatar/{1}".format(
             request.scheme, md5(rdata['email'].lower().strip(' \t\n\r').encode('utf-8')).hexdigest())
         rdata['groups'] = user_groups
@@ -216,25 +216,36 @@ class UserProfile(APIView):
             data['auth-token'] = str(tok[0])
             return Response(data)
 
-
-class UserAffiliationProfile(APIView):
-    permission_classes = (IsAuthenticated, appAffiliationPermissions,)
-    serializer_class = UserSerializer
-    fields = ('username', 'first_name', 'last_name', 'email')
-    model = User
+class GrouperGroupProfile(APIView):
+    permission_classes = (IsAuthenticatedOrReadOnly, grouperPermissions)
 
     def get(self, request, id=None, format=None):
-        data = User.objects.get(pk=self.request.user.id)
-        serializer = self.serializer_class(data, context={'request': request})
+        rdata = {
+            'username': '',
+            'email': '',
+            'first_name': '',
+            'last_name': '',
+            'user_affiliations': ''
+        }
 
-        user_groups,user_department = UserGroups().groups(request)
+        if 'samlUserdata' in request.session:
+            samlUserData = request.session['samlUserdata']
 
-        rdata = serializer.data
-        rdata['name'] = data.get_full_name()
-        rdata['affiliations'] = UserAffiliations().affiliations(request)
-        rdata['department'] = user_department
-        rdata['groups'] = user_groups
-
+            saml_mappings = settings.SAML_USERS_MAP[0]['MyProvider']
+            rdata['username'] = samlUserData[
+                saml_mappings['username']['key']][
+                saml_mappings['username']['index']]
+            rdata['email'] = samlUserData[
+                saml_mappings['email']['key']][
+                saml_mappings['email']['index']]
+            rdata['first_name'] = samlUserData[
+                saml_mappings['first_name']['key']][
+                saml_mappings['first_name']['index']]
+            rdata['last_name'] = samlUserData[
+                saml_mappings['last_name']['key']][
+                saml_mappings['last_name']['index']]
+            if "urn:oid:1.3.6.1.4.1.5923.1.1.1.1" in samlUserData:
+                rdata['user_affiliations'] = samlUserData["urn:oid:1.3.6.1.4.1.5923.1.1.1.1"]
         return Response(rdata)
 
 

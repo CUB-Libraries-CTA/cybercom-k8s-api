@@ -2,7 +2,7 @@ from django.urls import include, path, re_path
 from rest_framework import routers
 #from tutorial import views
 from django.contrib import admin
-from .views import APIRoot, UserProfile, UserAffiliationProfile, samlLogout, fileDataUploadView
+from .views import APIRoot, UserProfile, GrouperGroupProfile, samlLogout, fileDataUploadView
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from rest_framework.urlpatterns import format_suffix_patterns
@@ -43,8 +43,8 @@ urlpatterns = [
     path('api/data_store/', include('data_store.urls')),
     path('api/catalog/', include('catalog.urls')),
     path('api/user/', UserProfile.as_view(), name='user-list'),
-    path('api/user_affiliation/', UserAffiliationProfile.as_view(),
-         name='user-affiliation'),
+    path('api/user_affiliation/', GrouperGroupProfile.as_view(),
+         name='user-group'),
     path('api/counter/', include('counter.urls'), name='counter-list'),
     path('api/s3/', include('s3.urls'), name='s3-list'),
     path('api/room-booking/', include('room_booking.urls'),
