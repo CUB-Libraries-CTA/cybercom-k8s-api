@@ -1,19 +1,25 @@
-FROM python:3.6-alpine3.9
+FROM python:3.8
+#6-alpine3.9 
+#culibraries/celery:1.0.4
+# python:3.6-alpine3.9
 
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8 PYTHONUNBUFFERED=1 
 
-# Celery Broker and Backend Variables
-ENV BROKER_USE_SSL=true
-ENV BROKER_URL="amqp://<username>:<password>@<rabbitmq_host>:5671/vhost"
-ENV CELERY_RESULT_BACKEND="mongodb://<username>:<password>@<mongo_host>:27017/?ssl=true&ssl_ca_certs=/ssl/testca/cacert.pem&ssl_certfile=/ssl/client/mongodb.pem" 
-ENV MONGO_DB="cybercom"
-ENV MONGO_TOMBSTONE_COLLECTION="tombstone"
-ENV CELERY_IMPORTS=cybercomq
-ENV CELERY_SOURCE=git+https://github.com/cybercommons/cybercomq
-ENV CELERY_QUEUE=celery
-ENV LOG_LEVEL=INFO
-RUN apk add git
-
+RUN apt update
+# RUN RUN apt-get update && apt-get install -y \
+#     git \
+#     imagemagick \
+#     libimage-exiftool-perl \
+#     libtiff-dev \
+#     libxml2-dev \
+#     libxslt-dev \
+#     libopenjp2-7 
+# mariadb-server
+RUN apt install -y  git tzdata vim python3-pil python3-pil.imagetk
+RUN apt install -y default-libmysqlclient-dev
+# RUN apk add build-base libressl libffi-dev libressl-dev libxslt-dev libxml2-dev xmlsec-dev xmlsec
+# RUN apk add mariadb-dev git tzdata
+RUN cp /usr/share/zoneinfo/America/Denver /etc/localtime
 
 WORKDIR /  
 COPY requirements.txt ./  
@@ -25,8 +31,10 @@ COPY . /app
 WORKDIR /app
 
 #Setup Celery User
-RUN addgroup celery && adduser -DH -G celery celery
-RUN chown celery:celery -R /app
+#Setup Celery User
+RUN useradd -r -U -m celery \
+  && chown celery:celery -R /app
 
+#USER celery
 
 CMD ["/app/startCeleryWorker"]
