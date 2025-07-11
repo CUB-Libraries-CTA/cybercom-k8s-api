@@ -1,17 +1,9 @@
 [submodule "counter"]
 	path = counter
-	url = git@github.com:culibraries/counter-django-app.git
-	branch = master
+	url = git@github.com:CUB-Libraries-CTA/counter-django-app.git
 [submodule "s3"]
 	path = s3
-	url = git@github.com:culibraries/s3-django-app.git
-	branch = master
-[submodule "room_booking"]
-	path = room_booking
-	url = git@github.com:culibraries/room-booking-django-app.git
-[submodule "s3-logging"]
-	path = s3-logging
-	url = git@github.com:culibraries/s3-logging-django-app.git
+	url = git@github.com:CUB-Libraries-CTA/cloud-browser-django-app.git
 [submodule "ark-server"]
 	path = ark-server
-	url = git@github.com:culibraries/ark-django-app.git
+	url = git@github.com:CUB-Libraries-CTA/ark-django-app.git

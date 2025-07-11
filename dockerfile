@@ -21,7 +21,7 @@ RUN cp /usr/share/zoneinfo/America/Denver /etc/localtime
 
 # numpy and pandas build requirements 
 RUN apk --no-cache add musl-dev linux-headers g++
-RUN pip install --upgrade pip
+RUN pip install --upgrade pip==24.0
 
 # App requirements --no-cache-dir
 RUN pip install  -r requirements.txt

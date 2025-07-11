@@ -10,7 +10,7 @@ defusedxml==0.5.0
 Django==2.2.24
 django-cors-headers==3.8.0
 django-filter==2.1.0
-django-saml2-pro-auth @ git+https://github.com/culibraries/django-saml2-pro-auth.git@e2ad53d2591e4afc8606ffe94867f7c44be41699
+django-saml2-pro-auth @ git+https://github.com/CUB-Libraries-CTA/django-saml2-pro-auth.git@e2ad53d2591e4afc8606ffe94867f7c44be41699
 django-settings-export==1.2.1
 djangorestframework==3.11.2
 djangorestframework-jsonp==1.0.2
@@ -29,14 +29,14 @@ mysql==0.0.3
 mysqlclient==2.0.3
 numpy==1.21.2
 openpyxl==3.0.7
-pandas==1.3.1
+pandas==1.3.5
 PyJWT==1.7.1
 pymongo==3.7.2
 python-dateutil==2.8.2
 python-memcached==1.59
 python3-saml==1.11.0
 pytz==2021.1
-PyYAML==5.4
+PyYAML==6.0.1
 requests==2.26.0
 s3transfer==0.5.0
 six==1.12.0
