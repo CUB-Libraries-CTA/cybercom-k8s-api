@@ -100,7 +100,6 @@ INSTALLED_APPS = [
     'data_store',
     'catalog',
     'cybercom_queue',
-    'counter',
     's3',
     'ark-server'
 ]
@@ -173,17 +172,10 @@ DATABASES = {
         'HOST': os.getenv('DEFAULT_DB_HOST'),
         'USER': os.getenv('DEFAULT_DB_USER'),
         'PASSWORD': os.getenv('DEFAULT_DB_PASSWORD'),
-    },
-    'counter': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv('COUNTER_DB'),
-        'HOST': os.getenv('DEFAULT_DB_HOST'),
-        'USER': os.getenv('DEFAULT_DB_USER'),
-        'PASSWORD': os.getenv('DEFAULT_DB_PASSWORD'),
     }
 }
 
-DATABASE_ROUTERS = ['counter.database_router.counterRouter']
+DATABASE_ROUTERS = []
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
