@@ -45,9 +45,6 @@ class APIRoot(APIView):
             },
             'Data Store': {
                 'Mongo': reverse('data-list', request=request),
-                'Counter': [ reverse('platform-list', request=request),
-                            reverse('filter-list', request=request),
-                            reverse('title-list', request=request)],
                 'S3': [ reverse('buckets-list', request=request),
                         reverse('objects-list', request=request)]
             },

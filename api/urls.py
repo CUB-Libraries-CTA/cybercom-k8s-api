@@ -45,7 +45,6 @@ urlpatterns = [
     path('api/user/', UserProfile.as_view(), name='user-list'),
     path('api/user_affiliation/', GrouperGroupProfile.as_view(),
          name='user-group'),
-    path('api/counter/', include('counter.urls'), name='counter-list'),
     path('api/s3/', include('s3.urls'), name='s3-list'),
     path('ark:/', include('ark-server.urls'), name='ark-server'),
     re_path(r'^api/upload/', fileDataUploadView.as_view(), name='upload'),
