@@ -1,37 +1,45 @@
-FROM python:3.8
-#6-alpine3.9 
-#culibraries/celery:1.0.4
-# python:3.6-alpine3.9
+ARG DOCKER_PYTHON_VERSION=3.10-slim-bookworm
+FROM python:$DOCKER_PYTHON_VERSION
 
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8 PYTHONUNBUFFERED=1 
 
-RUN apt update
-# RUN RUN apt-get update && apt-get install -y \
-#     git \
-#     imagemagick \
-#     libimage-exiftool-perl \
-#     libtiff-dev \
-#     libxml2-dev \
-#     libxslt-dev \
-#     libopenjp2-7 
-# mariadb-server
-RUN apt install -y  git tzdata vim python3-pil python3-pil.imagetk
-RUN apt install -y default-libmysqlclient-dev
-# RUN apk add build-base libressl libffi-dev libressl-dev libxslt-dev libxml2-dev xmlsec-dev xmlsec
-# RUN apk add mariadb-dev git tzdata
+# CUBL Specific OS-level packages:
+# Besides the standard libs, the following are needed:
+#   thumbnailq requires Magick Wand and Pillow for image processing. 
+#   counterq requires mysql client which relies on pkg-config.
+RUN apt-get update && apt-get install -y \
+    git \
+    tzdata \
+    vim \
+    gcc \
+    pkg-config \
+    libmagickwand-dev \ 
+    python3-pil python3-pil.imagetk \
+    default-libmysqlclient-dev \
+  # Clean up apt cache to keep the layer small
+  && rm -rf /var/lib/apt/lists/*
+
+# Original Cybercommons installs
+# RUN apt-get install -y imagemagick libimage-exiftool-perl libtiff-dev libxml2-dev libxslt-dev libopenjp2-7 
+
+# Set timezone
 RUN cp /usr/share/zoneinfo/America/Denver /etc/localtime
 
-WORKDIR /  
-COPY requirements.txt ./  
-RUN pip install --no-cache-dir -r requirements.txt  
-RUN rm requirements.txt  
+# Upgrade pip, setuptools, and wheel early for better build compatibility
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
+WORKDIR /
+COPY requirements.txt ./  
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt \
+  && rm requirements.txt  
 
 COPY . /app  
 WORKDIR /app
 
-#Setup Celery User
-#Setup Celery User
+# Setup Celery User
+# -r: system user, -U: create a group with the same name, -m: create home directory
 RUN useradd -r -U -m celery \
   && chown celery:celery -R /app
 
