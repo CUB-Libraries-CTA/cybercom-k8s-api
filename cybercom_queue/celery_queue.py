@@ -1,17 +1,16 @@
-from celery.result import AsyncResult
 import math
 import re
-import pickle
+import pickle  #nosec
 import collections
 import json
-import celery
 from pymongo import MongoClient, DESCENDING
 from rest_framework.reverse import reverse
 from collections import OrderedDict
 from datetime import datetime
-
-from celery.task.control import inspect
+from celery import Celery
 from api import config
+
+app = Celery()
 
 class celeryConfig:
     BROKER_URL = config.BROKER_URL
@@ -44,18 +43,16 @@ class QueueTask():
         self.collection = log_collection
         self.tomb_collection = tomb_collection
         self.memcache=memcache
-        celery.Celery().config_from_object(celeryConfig)
-        self.i = inspect()
+        app.config_from_object(celeryConfig)
+        self.i = app.control.inspect()
         
     def run(self, task, task_args, task_kwargs, task_queue, user_info, tags):
         """ 
         Submit task to celerey async tasks
         """
-        # print(celeryConfig)
-        #app = Celery().config_from_object(celeryConfig)
         print(user_info)
         # Submit task
-        task_obj = celery.current_app.send_task(
+        task_obj = app.send_task(
             task, args=task_args, kwargs=task_kwargs, queue=task_queue, track_started=True,headers={"authenticated_user":user_info})
         task_log = {
             'task_id': task_obj.task_id,
@@ -90,7 +87,7 @@ class QueueTask():
             result = [item for item in col.find({'_id': task_id})]
             if len(result) == 0:
                 try:
-                    res = celery.result.AsyncResult(task_id)
+                    res = app.AsyncResult(task_id)
                     return {"status": "%s" % (res.status), "task_id": "%s" % (task_id)}
                 except:
                     raise
