@@ -60,9 +60,9 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY',
 DEBUG = True if os.getenv('API_DEBUG') == 'True' else False
 
 ALLOWED_HOSTS = ['.colorado.edu']
-_namespace = os.getenv('CYBERCOM_NAMESPACE', '')
-if _namespace:
-    ALLOWED_HOSTS.append(f'cybercom-api.{_namespace}.svc.cluster.local')
+extra_hosts = os.getenv('EXTRA_ALLOWED_HOSTS', '')
+if extra_hosts:
+    ALLOWED_HOSTS.extend([host.strip() for host in extra_hosts.split(',')])
 
 CORS_ORIGIN_WHITELIST = (
     'https://libapps.colorado.edu',
